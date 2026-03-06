@@ -1,15 +1,12 @@
-
 import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from '../../hooks/useForm'
-import { iniciarSesion } from '../../services/authService'
+import { login } from '../../services/authService'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const location = useLocation()
-  const from = location.state?.from?.pathname || '/'
 
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [enviando, setEnviando] = useState(false)
@@ -27,20 +24,30 @@ const LoginPage = () => {
     if (!validar()) return
 
     setEnviando(true)
-    const { error } = await iniciarSesion(valores)
+    const { data, error } = await login(valores.email, valores.password)
     setEnviando(false)
 
     if (error) {
-      if (error.message.includes('Invalid login')) {
-        toast.error('Correo o contraseña incorrectos')
-      } else {
-        toast.error(error.message || 'Error al iniciar sesión')
-      }
+      toast.error(error)
       return
     }
 
-    toast.success('¡Bienvenido!')
-    navigate(from, { replace: true })
+    // Redirigir según el tipo de usuario
+    toast.success(`¡Bienvenido ${data.name}!`)
+    
+    switch(data.type) {
+      case 'cliente':
+        navigate('/')
+        break
+      case 'admin_empresa':
+        navigate('/dashboard-empresa')
+        break
+      case 'empleado':
+        navigate('/canje-cupones')
+        break
+      default:
+        navigate('/')
+    }
   }
 
   return (
@@ -48,7 +55,7 @@ const LoginPage = () => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white text-center">
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white text-center relative">
           <Link to="/" className="absolute left-4 top-4 text-white/80 hover:text-white">
             <FiArrowLeft className="text-xl" />
           </Link>

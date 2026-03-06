@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabaseClient'
 
 /**
- * SERVICIO DE AUTENTICACIÓN UNIFICADO - FASE 2
+ * 🔐 SERVICIO DE AUTENTICACIÓN UNIFICADO - FASE 2
  * Maneja login para clientes, admin empresa y empleados
  */
 
@@ -22,7 +22,7 @@ export const login = async (email, password) => {
       // Guardar en localStorage
       const userData = {
         id: result.user_id,
-        type: result.user_type, // cliente, admin_empresa, o empleado
+        type: result.user_type, // 'cliente', 'admin_empresa', o 'empleado'
         name: result.user_name,
         empresaId: result.empresa_id,
         email: email
@@ -38,7 +38,7 @@ export const login = async (email, password) => {
   }
 }
 
-// Registro de cliente (mantener para compatibilidad)
+// Registro de cliente
 export const registrarCliente = async (clienteData) => {
   try {
     const { data, error } = await supabase
@@ -67,6 +67,13 @@ export const registrarCliente = async (clienteData) => {
   }
 }
 
+// Recuperar contraseña (placeholder)
+export const recuperarContrasena = async (email) => {
+  // TODO: Implementar recuperación de contraseña en fase futura
+  console.log('Recuperar contraseña para:', email)
+  return { error: null, mensaje: 'Se ha enviado un correo de recuperación' }
+}
+
 // Alias para compatibilidad con código existente
 export const iniciarSesion = login
 
@@ -87,6 +94,12 @@ export const getCurrentUser = () => {
 // Alias para compatibilidad
 export const obtenerUsuarioActual = () => {
   return { user: getCurrentUser(), error: null }
+}
+
+// Obtener sesión (para compatibilidad)
+export const obtenerSesion = () => {
+  const user = getCurrentUser()
+  return { session: user ? { user } : null, error: null }
 }
 
 // Verificar si está autenticado
