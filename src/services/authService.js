@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabaseClient'
 
 /**
- * 🔐 SERVICIO DE AUTENTICACIÓN UNIFICADO - FASE 2
+ * SERVICIO DE AUTENTICACIÓN UNIFICADO - FASE 2
  * Maneja login para clientes, admin empresa y empleados
  */
 

@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from '../../hooks/useForm'
 import { login } from '../../services/authService'
+import { useAuth } from '../../context/AuthContext'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 const LoginPage = () => {
   const navigate = useNavigate()
+  const { refrescarPerfil } = useAuth()
 
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [enviando, setEnviando] = useState(false)
@@ -32,10 +34,12 @@ const LoginPage = () => {
       return
     }
 
-    // Redirigir según el tipo de usuario
+    // Actualizar el contexto antes de navegar
+    refrescarPerfil()
+
     toast.success(`¡Bienvenido ${data.name}!`)
-    
-    switch(data.type) {
+
+    switch (data.type) {
       case 'cliente':
         navigate('/')
         break
@@ -59,9 +63,9 @@ const LoginPage = () => {
           <Link to="/" className="absolute left-4 top-4 text-white/80 hover:text-white">
             <FiArrowLeft className="text-xl" />
           </Link>
-          <img 
-            src="/Cuponera-sin fondo.png" 
-            alt="La Cuponera" 
+          <img
+            src="/Cuponera-sin fondo.png"
+            alt="La Cuponera"
             className="h-16 mx-auto mb-2"
           />
           <h1 className="text-2xl font-bold">Bienvenido</h1>
@@ -70,7 +74,7 @@ const LoginPage = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          
+
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -126,8 +130,8 @@ const LoginPage = () => {
 
           {/* Forgot password */}
           <div className="text-right">
-            <Link 
-              to="/recuperar-contrasena" 
+            <Link
+              to="/recuperar-contrasena"
               className="text-sm text-orange-600 hover:underline"
             >
               ¿Olvidaste tu contraseña?

@@ -22,6 +22,14 @@ import RecuperarContrasenaPage from './pages/auth/RecuperarContrasenaPage'
 import MisCuponesPage from './pages/cliente/MisCuponesPage'
 import PerfilPage from './pages/cliente/PerfilPage'
 
+// Páginas de administrador ofertante
+import DashboardEmpresaPage from './pages/empresa/DashboardEmpresaPage'
+import NuevaOfertaPage from './pages/empresa/NuevaOfertaPage'
+import GestionEmpleadosPage from './pages/empresa/GestionEmpleadosPage'
+
+// Páginas de empleado
+import CanjeCuponesPage from './pages/empleado/CanjeCuponesPage'
+
 // Constantes
 import { ROLES } from './config/constants'
 
@@ -29,12 +37,12 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Toaster 
+        <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,
-            style: { 
-              background: '#363636', 
+            style: {
+              background: '#363636',
               color: '#fff',
               borderRadius: '10px',
             },
@@ -62,45 +70,82 @@ function App() {
 
           {/* Rutas con layout */}
           <Route element={<Layout />}>
+
             {/* Públicas */}
             <Route path="/" element={<Home />} />
             <Route path="/ofertas/:id" element={<OfertaDetallePage />} />
 
-            {/* Cliente - Rutas protegidas */}
-            <Route 
-              path="/mis-cupones" 
+            {/* ── CLIENTE ── */}
+            <Route
+              path="/mis-cupones"
               element={
                 <ProtectedRoute roles={[ROLES.CLIENTE]}>
                   <MisCuponesPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/perfil" 
+            <Route
+              path="/perfil"
               element={
                 <ProtectedRoute roles={[ROLES.CLIENTE]}>
                   <PerfilPage />
                 </ProtectedRoute>
-              } 
+              }
+            />
+
+            {/* ── ADMINISTRADOR OFERTANTE ── */}
+            <Route
+              path="/dashboard-empresa"
+              element={
+                <ProtectedRoute roles={[ROLES.ADMIN_EMPRESA]}>
+                  <DashboardEmpresaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard-empresa/nueva-oferta"
+              element={
+                <ProtectedRoute roles={[ROLES.ADMIN_EMPRESA]}>
+                  <NuevaOfertaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard-empresa/empleados"
+              element={
+                <ProtectedRoute roles={[ROLES.ADMIN_EMPRESA]}>
+                  <GestionEmpleadosPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ── EMPLEADO ── */}
+            <Route
+              path="/canje-cupones"
+              element={
+                <ProtectedRoute roles={[ROLES.EMPLEADO]}>
+                  <CanjeCuponesPage />
+                </ProtectedRoute>
+              }
             />
 
             {/* 404 */}
-            <Route 
-              path="*" 
+            <Route
+              path="*"
               element={
                 <div className="min-h-screen flex items-center justify-center bg-gray-50">
                   <div className="text-center">
                     <h1 className="text-6xl font-bold text-gray-300">404</h1>
                     <p className="text-gray-600 mt-2 mb-4">Página no encontrada</p>
-                    <a 
-                      href="/" 
+                    <a
+                      href="/"
                       className="inline-block bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
                     >
                       Volver al inicio
                     </a>
                   </div>
                 </div>
-              } 
+              }
             />
           </Route>
         </Routes>
