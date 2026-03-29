@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabaseClient'
 import { getCurrentUser } from './authService'
 
+
 // HELPER: obtener empresa_id del usuario logueado 
 const getEmpresaId = () => {
   const user = getCurrentUser()
@@ -142,22 +143,10 @@ export const getEmpleadosEmpresa = async () => {
   }
 }
 
-/**
- * Registrar un nuevo empleado
- * @param {object} empleadoData - { nombres, apellidos, email, password }
- */
 export const crearEmpleado = async (empleadoData) => {
   try {
     const empresaId = getEmpresaId()
     if (!empresaId) throw new Error('No se encontró empresa asociada')
-
-    console.log('Llamando a registrar_empleado con:', {
-      p_empresa_id: empresaId,
-      p_nombres: empleadoData.nombres,
-      p_apellidos: empleadoData.apellidos,
-      p_email: empleadoData.email,
-      p_password: empleadoData.password ? '***' : 'NO PROPORCIONADO'
-    })
 
     const { data, error } = await supabase
       .rpc('registrar_empleado', {
@@ -168,19 +157,13 @@ export const crearEmpleado = async (empleadoData) => {
         p_password:   empleadoData.password,
       })
 
-    console.log('Respuesta de Supabase:', { data, error })
-
-    if (error) {
-      console.error('Error de Supabase:', error)
-      throw error
-    }
+    if (error) throw error
 
     if (!data || data.length === 0) {
       throw new Error('No se recibió respuesta de la función')
     }
 
     const result = data[0]
-    console.log('Resultado parseado:', result)
 
     if (result.success) {
       return { data: result, error: null }
@@ -192,7 +175,6 @@ export const crearEmpleado = async (empleadoData) => {
     return { data: null, error: error.message || String(error) }
   }
 }
-
 /**
  * Actualizar datos de un empleado
  * @param {number} empleadoId
@@ -223,10 +205,6 @@ export const actualizarEmpleado = async (empleadoId, empleadoData) => {
   }
 }
 
-/**
- * Eliminar (desactivar) un empleado
- * @param {number} empleadoId
- */
 export const eliminarEmpleado = async (empleadoId) => {
   try {
     const empresaId = getEmpresaId()
@@ -234,9 +212,9 @@ export const eliminarEmpleado = async (empleadoId) => {
 
     const { data, error } = await supabase
       .from('empleados_empresa')
-      .update({ activo: false })
+      .delete()
       .eq('id', empleadoId)
-      .eq('empresa_id', empresaId) // seguridad
+      .eq('empresa_id', empresaId)
       .select()
       .single()
 
