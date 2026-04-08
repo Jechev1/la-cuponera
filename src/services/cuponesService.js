@@ -1,17 +1,36 @@
 import { supabase } from '../config/supabaseClient'
+import { getCurrentUser } from './authService'
 
 export const getMisCupones = async () => {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      throw new Error('Usuario no autenticado')
-    }
+    const user = getCurrentUser()
+    if (!user) throw new Error('Usuario no autenticado')
 
-    // Leer cupones de localStorage
-    const cupones = JSON.parse(localStorage.getItem('mis_cupones') || '[]')
-    
-    return { data: cupones, error: null }
+    const { data, error } = await supabase
+      .from('cupones')
+      .select(`
+        id,
+        codigo,
+        estado,
+        precio_pagado,
+        fecha_vencimiento,
+        fecha_canje,
+        oferta_id,
+        ofertas (
+          titulo,
+          precio_regular,
+          precio_oferta,
+          porcentaje_descuento,
+          imagen_url,
+          fecha_limite_uso,
+          empresas ( nombre )
+        )
+      `)
+      .eq('cliente_id', user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return { data: data ?? [], error: null }
   } catch (error) {
     console.error('Error al obtener cupones:', error)
     return { data: null, error }
@@ -20,54 +39,74 @@ export const getMisCupones = async () => {
 
 export const comprarCuponDirecto = async ({ ofertaId, precioOferta, empresaNombre, fechaLimiteUso, ofertaData }) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      throw new Error('Debes iniciar sesión para comprar un cupón')
-    }
+    const user = getCurrentUser()
+    if (!user) throw new Error('Debes iniciar sesión para comprar un cupón')
 
     const codigo = generarCodigo(empresaNombre)
 
-    // Simular cupón con datos de la oferta
-    const cuponSimulado = {
-      id: Date.now(),
-      codigo,
-      oferta_id: ofertaId,
-      cliente_id: user.id,
-      precio_pagado: precioOferta,
-      estado: 'disponible',
-      fecha_compra: new Date().toISOString(),
-      fecha_vencimiento: fechaLimiteUso,
-      oferta: ofertaData || {
-        titulo: 'Oferta',
-        precio_regular: precioOferta * 2,
-        porcentaje_descuento: 50,
-        empresa_nombre: empresaNombre,
-      }
-    }
+    const { data, error } = await supabase
+      .from('cupones')
+      .insert([{
+        codigo,
+        oferta_id:         ofertaId,
+        cliente_id:        user.id,
+        precio_pagado:     precioOferta,
+        estado:            'disponible',
+        fecha_vencimiento: fechaLimiteUso,
+      }])
+      .select(`
+        id,
+        codigo,
+        estado,
+        precio_pagado,
+        fecha_vencimiento,
+        oferta_id,
+        ofertas (
+          titulo,
+          precio_regular,
+          precio_oferta,
+          porcentaje_descuento,
+          imagen_url,
+          fecha_limite_uso,
+          empresas ( nombre )
+        )
+      `)
+      .single()
 
-    // Guardar en localStorage
-    const cuponesGuardados = JSON.parse(localStorage.getItem('mis_cupones') || '[]')
-    cuponesGuardados.push(cuponSimulado)
-    localStorage.setItem('mis_cupones', JSON.stringify(cuponesGuardados))
-
-    return { data: cuponSimulado, error: null }
+    if (error) throw error
+    return { data, error: null }
   } catch (error) {
-    console.error('Error en comprarCuponDirecto:', error)
+    console.error('Error al comprar cupón:', error)
     return { data: null, error }
   }
 }
 
 export const getCuponPorId = async (cuponId) => {
   try {
-    const cupones = JSON.parse(localStorage.getItem('mis_cupones') || '[]')
-    const cupon = cupones.find(c => c.id === cuponId)
-    
-    if (!cupon) {
-      throw new Error('Cupón no encontrado')
-    }
+    const { data, error } = await supabase
+      .from('cupones')
+      .select(`
+        id,
+        codigo,
+        estado,
+        precio_pagado,
+        fecha_vencimiento,
+        fecha_canje,
+        oferta_id,
+        ofertas (
+          titulo,
+          precio_regular,
+          precio_oferta,
+          imagen_url,
+          fecha_limite_uso,
+          empresas ( nombre )
+        )
+      `)
+      .eq('id', cuponId)
+      .single()
 
-    return { data: cupon, error: null }
+    if (error) throw error
+    return { data, error: null }
   } catch (error) {
     return { data: null, error }
   }
