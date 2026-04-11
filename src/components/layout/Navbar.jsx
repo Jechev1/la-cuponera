@@ -60,9 +60,12 @@ const Navbar = () => {
                   <Link to="/mis-cupones" className="text-white hover:text-orange-200 transition font-medium">
                     Mis cupones
                   </Link>
-                  <Link to="/carrito" className="text-white hover:text-orange-200 transition font-medium">
+                  <button
+                    onClick={() => toast('Carrito ¡Próximamente! Estamos trabajando en ello jijiji', { icon: '⏳' })}
+                    className="text-white hover:text-orange-200 transition font-medium"
+                  >
                     Carrito
-                  </Link>
+                  </button>
                 </>
               )}
 
