@@ -37,7 +37,7 @@ export const getMisCupones = async () => {
   }
 }
 
-export const comprarCuponDirecto = async ({ ofertaId, precioOferta, empresaNombre, fechaLimiteUso, ofertaData }) => {
+export const comprarCuponDirecto = async ({ ofertaId, precioOferta, empresaNombre, fechaLimiteUso }) => {
   try {
     const user = getCurrentUser()
     if (!user) throw new Error('Debes iniciar sesión para comprar un cupón')
@@ -45,42 +45,35 @@ export const comprarCuponDirecto = async ({ ofertaId, precioOferta, empresaNombr
     const codigo = generarCodigo(empresaNombre)
 
     const { data, error } = await supabase
-      .from('cupones')
-      .insert([{
-        codigo,
-        oferta_id:         ofertaId,
-        cliente_id:        user.id,
-        precio_pagado:     precioOferta,
-        estado:            'disponible',
-        fecha_vencimiento: fechaLimiteUso,
-      }])
-      .select(`
-        id,
-        codigo,
-        estado,
-        precio_pagado,
-        fecha_vencimiento,
-        oferta_id,
-        ofertas (
-          titulo,
-          precio_regular,
-          precio_oferta,
-          porcentaje_descuento,
-          imagen_url,
-          fecha_limite_uso,
-          empresas ( nombre )
-        )
-      `)
-      .single()
+      .rpc('comprar_cupon', {
+        p_oferta_id:        ofertaId,
+        p_cliente_id:       user.id,
+        p_codigo:           codigo,
+        p_precio_pagado:    precioOferta,
+        p_fecha_vencimiento: fechaLimiteUso,
+      })
 
     if (error) throw error
-    return { data, error: null }
+
+    const result = data[0]
+    if (!result.success) throw new Error(result.mensaje)
+
+    // Devolver el cupón recién creado
+    const { data: cupon } = await supabase
+      .from('cupones')
+      .select(`
+        id, codigo, estado, precio_pagado, fecha_vencimiento, oferta_id,
+        ofertas ( titulo, precio_regular, precio_oferta, imagen_url, fecha_limite_uso, empresas ( nombre ) )
+      `)
+      .eq('codigo', codigo)
+      .single()
+
+    return { data: cupon, error: null }
   } catch (error) {
     console.error('Error al comprar cupón:', error)
     return { data: null, error }
   }
 }
-
 export const getCuponPorId = async (cuponId) => {
   try {
     const { data, error } = await supabase
